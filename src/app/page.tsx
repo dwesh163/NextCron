@@ -1,113 +1,225 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect, SVGProps } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Job } from '@/types/job';
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	const [error, setError] = useState<string | null>(null);
+	const [cronJobs, setCronJobs] = useState<Job[]>([]);
+	const [newJob, setNewJob] = useState<Job>({
+		name: '',
+		command: '',
+		schedule: '',
+		emailNotification: false,
+		id: 0,
+		status: 'ready',
+	});
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+	const fetchCronJobs = async () => {
+		const response = await fetch('/api/cronjobs');
+		if (response.ok) {
+			const jobs = await response.json();
+			if (jobs.error) {
+				setError(jobs.error);
+				return;
+			}
+			setCronJobs(jobs);
+		}
+	};
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+	useEffect(() => {
+		fetchCronJobs();
+		const interval = setInterval(() => {
+			fetchCronJobs();
+		}, 10000);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+		return () => {
+			clearInterval(interval);
+		};
+	}, []);
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+	const handleCreateJob = async () => {
+		const response = await fetch('/api/cronjobs', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(newJob),
+		});
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+		if (response.ok) {
+			const result = await response.json();
+			setCronJobs([...cronJobs, result.job]);
+			setNewJob({
+				name: '',
+				command: '',
+				schedule: '',
+				emailNotification: false,
+				id: 0,
+				status: 'running',
+			});
+		} else {
+			const data = await response.json();
+			setError(data.error);
+		}
+	};
+
+	const handleEditJob = async (job: Job) => {
+		const response = await fetch('/api/cronjobs', {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(job),
+		});
+
+		if (response.ok) {
+			const result = await response.json();
+			setCronJobs(cronJobs.map((j) => (j.id === result.job.id ? result.job : j)));
+		} else {
+			const data = await response.json();
+			setError(data.error);
+		}
+	};
+
+	const handleDeleteJob = async (jobId: number) => {
+		const response = await fetch(`/api/cronjobs?id=${jobId}`, {
+			method: 'DELETE',
+		});
+
+		if (response.ok) {
+			setCronJobs(cronJobs.filter((job) => job.id !== jobId));
+		} else {
+			console.error('Failed to delete job');
+		}
+	};
+
+	return (
+		<div className="flex flex-col h-screen">
+			<header className="bg-primary text-primary-foreground py-4 px-6">
+				<h1 className="text-2xl font-bold">NextCron</h1>
+			</header>
+			<main className="flex-1 p-6">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<Card>
+						<CardHeader>
+							<CardTitle>Create New Cron Job</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="space-y-4">
+								{error && <p className="text-red-500">{error}</p>}
+								<div className="space-y-2">
+									<Label htmlFor="name">Job Name</Label>
+									<Input id="name" placeholder="Enter job name" value={newJob.name} onChange={(e) => setNewJob({ ...newJob, name: e.target.value })} />
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="command">Command</Label>
+									<Input id="command" placeholder="Enter command" value={newJob.command} onChange={(e) => setNewJob({ ...newJob, command: e.target.value })} />
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="schedule">Schedule</Label>
+									<Input id="schedule" placeholder="Enter cron schedule" value={newJob.schedule} onChange={(e) => setNewJob({ ...newJob, schedule: e.target.value })} />
+								</div>
+								<div className="flex justify-start items-center gap-2">
+									<Checkbox id="emailNotification" checked={newJob.emailNotification} onCheckedChange={(checked: boolean) => setNewJob({ ...newJob, emailNotification: checked })} />
+									<Label htmlFor="emailNotification">Email Notification</Label>
+								</div>
+							</div>
+						</CardContent>
+						<CardFooter>
+							<Button onClick={handleCreateJob}>Create Job</Button>
+						</CardFooter>
+					</Card>
+					<Card>
+						<CardHeader>
+							<CardTitle>Cron Jobs</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Name</TableHead>
+										<TableHead>Schedule</TableHead>
+										<TableHead>Status</TableHead>
+										<TableHead>Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody className="select-none">
+									{cronJobs.map((job) => (
+										<TableRow key={job.id}>
+											<TableCell>{job.name}</TableCell>
+											<TableCell>{job.schedule}</TableCell>
+											<TableCell>
+												<Badge variant="default" className={job.status === 'complete' ? 'bg-green-500 hover:bg-green-400 text-white' : job.status === 'running' ? 'bg-yellow-500 hover:bg-yellow-400 text-white' : job.status === 'ready' ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-red-500 hover:bg-red-400 text-white'}>
+													{job.status}
+												</Badge>
+											</TableCell>
+											<TableCell>
+												<div className="flex items-center gap-2">
+													<Button
+														variant="outline"
+														size="icon"
+														onClick={() => handleEditJob({ ...job, status: 'updated' })} // Example edit action
+													>
+														<FilePenIcon className="h-4 w-4" />
+													</Button>
+													<AlertDialog>
+														<AlertDialogTrigger>
+															<Button variant="outline" size="icon">
+																<TrashIcon className="h-4 w-4" />
+															</Button>
+														</AlertDialogTrigger>
+														<AlertDialogContent>
+															<AlertDialogHeader>
+																<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+																<AlertDialogDescription>This action cannot be undone. This will permanently delete your account and remove your data from our servers.</AlertDialogDescription>
+															</AlertDialogHeader>
+															<AlertDialogFooter>
+																<AlertDialogCancel>Cancel</AlertDialogCancel>
+																<AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => handleDeleteJob(job.id)}>
+																	Continue
+																</AlertDialogAction>
+															</AlertDialogFooter>
+														</AlertDialogContent>
+													</AlertDialog>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</CardContent>
+					</Card>
+				</div>
+			</main>
+		</div>
+	);
+}
+
+function FilePenIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+	return (
+		<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+			<path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10" />
+			<path d="M14 2v4a2 2 0 0 0 2 2h4" />
+			<path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z" />
+		</svg>
+	);
+}
+
+function TrashIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+	return (
+		<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+			<path d="M3 6h18" />
+			<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+			<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+		</svg>
+	);
 }
